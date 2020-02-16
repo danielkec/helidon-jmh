@@ -1,0 +1,226 @@
+=============> 2.0 Before RS Changes
+
+Benchmark                                 Mode  Cnt          Score         Error  Units
+MultiTest.testCollectList                thrpt   20    3912072.415 ±   83108.338  ops/s
+MultiTest.testCollectListWithLoad        thrpt   20         32.049 ±       3.513  ops/s
+MultiTest.testCollectorBadCollectMethod  thrpt   20     321702.538 ±   10321.332  ops/s
+MultiTest.testCollectorBadNullValue      thrpt   20     592342.792 ±   13522.177  ops/s
+MultiTest.testCollectorBadValueMethod    thrpt   20     594139.384 ±   16066.738  ops/s
+MultiTest.testEmpty                      thrpt   20  221273528.397 ± 2069484.487  ops/s
+MultiTest.testError                      thrpt   20     934990.794 ±   32518.489  ops/s
+MultiTest.testErrorCollect               thrpt   20     871473.573 ±   20208.242  ops/s
+MultiTest.testErrorFirst                 thrpt   20     835473.987 ±   31427.630  ops/s
+MultiTest.testFirst                      thrpt   20     614364.408 ±   15141.161  ops/s
+MultiTest.testFirstWithLoad              thrpt   20        160.649 ±      14.417  ops/s
+MultiTest.testFromMulti                  thrpt   20    6020090.153 ±  139530.253  ops/s
+MultiTest.testFromMultiWithLoad          thrpt   20         36.843 ±       2.436  ops/s
+MultiTest.testFromPublisher              thrpt   20   13484905.190 ±  207512.507  ops/s
+MultiTest.testFromPublisherWithLoad      thrpt   20         37.159 ±       1.182  ops/s
+MultiTest.testJust                       thrpt   20    6091433.215 ±  119109.482  ops/s
+MultiTest.testJustWithLoad               thrpt   20         38.869 ±       1.619  ops/s
+MultiTest.testMapBadMapper               thrpt   20     331813.833 ±    9618.409  ops/s
+MultiTest.testMapBadMapperNullValue      thrpt   20     331357.424 ±   10238.131  ops/s
+MultiTest.testMapChain                   thrpt   20        159.431 ±       9.558  ops/s
+MultiTest.testMapper                     thrpt   20    3342007.166 ±  120851.819  ops/s
+MultiTest.testMapperWithLoad             thrpt   20         14.834 ±       0.674  ops/s
+MultiTest.testNever                      thrpt   20  224959458.170 ± 1003747.195  ops/s
+MultiTest.testNeverMap                   thrpt   20   13476463.764 ±  308786.163  ops/s
+
+=============> 2.0 After RS changes
+
+Benchmark                                 Mode  Cnt          Score        Error  Units
+MultiTest.testCollectList                thrpt   20      28208.291 ±    481.321  ops/s
+MultiTest.testCollectListWithLoad        thrpt   20         20.309 ±      0.496  ops/s
+MultiTest.testCollectorBadCollectMethod  thrpt   20      25442.106 ±    624.894  ops/s
+MultiTest.testCollectorBadNullValue      thrpt   20      25692.490 ±    169.087  ops/s
+MultiTest.testCollectorBadValueMethod    thrpt   20      26207.738 ±    629.264  ops/s
+MultiTest.testEmpty                      thrpt   20  224551207.938 ± 458755.598  ops/s
+MultiTest.testError                      thrpt   20     963898.032 ±  27666.890  ops/s
+MultiTest.testErrorCollect               thrpt   20      26225.811 ±    741.921  ops/s
+MultiTest.testErrorFirst                 thrpt   20      25951.106 ±    788.661  ops/s
+MultiTest.testFirst                      thrpt   20      26767.657 ±    728.279  ops/s
+MultiTest.testFirstWithLoad              thrpt   20         33.958 ±      0.057  ops/s
+MultiTest.testFromMulti                  thrpt   20    5491076.624 ± 169517.439  ops/s
+MultiTest.testFromMultiWithLoad          thrpt   20         34.697 ±      0.827  ops/s
+MultiTest.testFromPublisher              thrpt   20   13630306.309 ± 357308.483  ops/s
+MultiTest.testFromPublisherWithLoad      thrpt   20         36.577 ±      1.191  ops/s
+MultiTest.testJust                       thrpt   20    5777306.161 ± 235353.591  ops/s
+MultiTest.testJustWithLoad               thrpt   20         34.490 ±      0.535  ops/s
+MultiTest.testMapBadMapper               thrpt   20      21563.527 ±    583.867  ops/s
+MultiTest.testMapBadMapperNullValue      thrpt   20      23008.961 ±    496.908  ops/s
+MultiTest.testMapChain                   thrpt   20     307060.665 ±   1159.209  ops/s
+MultiTest.testMapper                     thrpt   20      24535.839 ±    120.061  ops/s
+MultiTest.testMapperWithLoad             thrpt   20         12.986 ±      0.418  ops/s
+MultiTest.testNever                      thrpt   20  223842857.644 ± 673477.305  ops/s
+MultiTest.testNeverMap                   thrpt   20      12903.295 ±    125.935  ops/s
+
+=============> 2.0 Current optimized version STRICT-MODE=OFF
+
+Benchmark                                 Mode  Cnt          Score         Error  Units
+MultiTest.testCollectList                thrpt   20    3642835.414 ±  124850.237  ops/s
+MultiTest.testCollectListWithLoad        thrpt   20         28.567 ±       1.027  ops/s
+MultiTest.testCollectorBadCollectMethod  thrpt   20     505438.896 ±    6623.065  ops/s
+MultiTest.testCollectorBadNullValue      thrpt   20     330357.176 ±    7020.925  ops/s
+MultiTest.testCollectorBadValueMethod    thrpt   20     296819.810 ±   16233.013  ops/s
+MultiTest.testEmpty                      thrpt   20  224532082.832 ±  650721.009  ops/s
+MultiTest.testError                      thrpt   20     905232.328 ±   37526.650  ops/s
+MultiTest.testErrorCollect               thrpt   20     892416.235 ±   18517.910  ops/s
+MultiTest.testErrorFirst                 thrpt   20     840123.987 ±   25785.481  ops/s
+MultiTest.testFirst                      thrpt   20    3614855.979 ±  230306.157  ops/s
+MultiTest.testFirstWithLoad              thrpt   20         32.927 ±       2.111  ops/s
+MultiTest.testFromMulti                  thrpt   20    5958645.742 ±  139480.871  ops/s
+MultiTest.testFromMultiWithLoad          thrpt   20         32.951 ±       0.875  ops/s
+MultiTest.testFromPublisher              thrpt   20   13414176.482 ±  327110.512  ops/s
+MultiTest.testFromPublisherWithLoad      thrpt   20         37.231 ±       1.638  ops/s
+MultiTest.testJust                       thrpt   20    5954519.853 ±  217001.814  ops/s
+MultiTest.testJustWithLoad               thrpt   20         32.103 ±       1.225  ops/s
+MultiTest.testMapBadMapper               thrpt   20     500077.111 ±   19214.795  ops/s
+MultiTest.testMapBadMapperNullValue      thrpt   20     603156.836 ±   14554.668  ops/s
+MultiTest.testMapChain                   thrpt   20    2155635.562 ±   57441.817  ops/s
+MultiTest.testMapper                     thrpt   20    3404497.828 ±  108189.253  ops/s
+MultiTest.testMapperWithLoad             thrpt   20         17.257 ±       0.437  ops/s
+MultiTest.testNever                      thrpt   20  221668857.324 ± 4248935.357  ops/s
+MultiTest.testNeverMap                   thrpt   20   17759882.427 ±  663368.475  ops/s
+
+=============> 2.0 Current optimized version STRICT-MODE=ON
+
+Benchmark                                 Mode  Cnt          Score          Error  Units
+MultiTest.testCollectList                thrpt   20    3733674.922 ±   104556.789  ops/s
+MultiTest.testCollectListWithLoad        thrpt   20         29.999 ±        0.839  ops/s
+MultiTest.testCollectorBadCollectMethod  thrpt   20     517917.909 ±    19924.529  ops/s
+MultiTest.testCollectorBadNullValue      thrpt   20     305600.609 ±    14726.698  ops/s
+MultiTest.testCollectorBadValueMethod    thrpt   20     293432.431 ±    38008.251  ops/s
+MultiTest.testEmpty                      thrpt   20  216582358.327 ± 14943568.405  ops/s
+MultiTest.testError                      thrpt   20     926006.582 ±    29397.187  ops/s
+MultiTest.testErrorCollect               thrpt   20     868542.748 ±    30161.557  ops/s
+MultiTest.testErrorFirst                 thrpt   20     844278.717 ±    46591.635  ops/s
+MultiTest.testFirst                      thrpt   20    3627088.562 ±   117980.364  ops/s
+MultiTest.testFirstWithLoad              thrpt   20         34.662 ±        0.067  ops/s
+MultiTest.testFromMulti                  thrpt   20    5943968.270 ±   200843.517  ops/s
+MultiTest.testFromMultiWithLoad          thrpt   20         31.030 ±        1.437  ops/s
+MultiTest.testFromPublisher              thrpt   20   13408504.907 ±   296678.440  ops/s
+MultiTest.testFromPublisherWithLoad      thrpt   20         37.508 ±        2.142  ops/s
+MultiTest.testJust                       thrpt   20    5480974.727 ±   608714.539  ops/s
+MultiTest.testJustWithLoad               thrpt   20         32.855 ±        0.827  ops/s
+MultiTest.testMapBadMapper               thrpt   20     479186.563 ±    47246.349  ops/s
+MultiTest.testMapBadMapperNullValue      thrpt   20     522558.995 ±    24617.517  ops/s
+MultiTest.testMapChain                   thrpt   20    1843330.823 ±   275746.667  ops/s
+MultiTest.testMapper                     thrpt   20    3302959.598 ±   357053.384  ops/s
+MultiTest.testMapperWithLoad             thrpt   20         15.013 ±        2.406  ops/s
+MultiTest.testNever                      thrpt   20  213537143.254 ± 14446293.016  ops/s
+MultiTest.testNeverMap                   thrpt   20   18017801.810 ±   165830.969  ops/s
+
+===============> Kec design
+
+Benchmark                                 Mode  Cnt          Score        Error  Units
+MultiTest.testCollectList                thrpt   20    5002324.746 ±  11530.719  ops/s
+MultiTest.testCollectListWithLoad        thrpt   20         51.225 ±      1.248  ops/s
+MultiTest.testCollectorBadCollectMethod  thrpt   20     631207.726 ±  18137.207  ops/s
+MultiTest.testCollectorBadNullValue      thrpt   20     606541.755 ±  14803.397  ops/s
+MultiTest.testCollectorBadValueMethod    thrpt   20     558565.280 ±  13626.865  ops/s
+MultiTest.testEmpty                      thrpt   20  249505339.457 ± 642116.550  ops/s
+MultiTest.testError                      thrpt   20     998113.676 ±  11062.629  ops/s
+MultiTest.testErrorCollect               thrpt   20     855822.089 ±  15713.872  ops/s
+MultiTest.testErrorFirst                 thrpt   20     844451.670 ±  30773.688  ops/s
+MultiTest.testFirst                      thrpt   20    4830051.266 ±   7806.706  ops/s
+MultiTest.testFirstWithLoad              thrpt   20         73.063 ±      6.089  ops/s
+MultiTest.testFromMulti                  thrpt   20   11502302.222 ±  21495.638  ops/s
+MultiTest.testFromMultiWithLoad          thrpt   20         73.366 ±      0.878  ops/s
+MultiTest.testFromPublisher              thrpt   20    4853760.299 ± 119387.374  ops/s
+MultiTest.testFromPublisherWithLoad      thrpt   20         17.911 ±      0.687  ops/s
+MultiTest.testJust                       thrpt   20   11339105.354 ± 128983.593  ops/s
+MultiTest.testJustWithLoad               thrpt   20         63.156 ±      1.922  ops/s
+MultiTest.testMapBadMapper               thrpt   20     554610.612 ±  16990.944  ops/s
+MultiTest.testMapBadMapperNullValue      thrpt   20     662185.902 ±   8119.126  ops/s
+MultiTest.testMapChain                   thrpt   20    1532355.105 ±   8134.397  ops/s
+MultiTest.testMapper                     thrpt   20    4650946.510 ±  22891.540  ops/s
+MultiTest.testMapperWithLoad             thrpt   20         23.070 ±      0.455  ops/s
+MultiTest.testNever                      thrpt   20  249929801.878 ± 624170.511  ops/s
+MultiTest.testNeverMap                   thrpt   20   11254402.802 ±  43660.513  ops/s
+
+================> Alex design
+
+Benchmark                                 Mode  Cnt          Score        Error  Units
+MultiTest.testCollectList                thrpt   20    6275940.759 ± 117493.498  ops/s
+MultiTest.testCollectListWithLoad        thrpt   20         50.505 ±      1.026  ops/s
+MultiTest.testCollectorBadCollectMethod  thrpt   20     352959.391 ±  10402.271  ops/s
+MultiTest.testCollectorBadNullValue      thrpt   20     763200.258 ±  16048.882  ops/s
+MultiTest.testCollectorBadValueMethod    thrpt   20     733686.959 ±  22555.903  ops/s
+MultiTest.testEmpty                      thrpt   20  249366103.421 ± 405521.947  ops/s
+MultiTest.testError                      thrpt   20    1000511.079 ±  20563.546  ops/s
+MultiTest.testErrorCollect               thrpt   20     949985.747 ±  15171.764  ops/s
+MultiTest.testErrorFirst                 thrpt   20     942210.023 ±  30553.359  ops/s
+MultiTest.testFirst                      thrpt   20    6962454.369 ±  15496.635  ops/s
+MultiTest.testFirstWithLoad              thrpt   20         44.054 ±      0.933  ops/s
+MultiTest.testFromMulti                  thrpt   20   11331702.370 ± 216365.852  ops/s
+MultiTest.testFromMultiWithLoad          thrpt   20         73.931 ±      1.757  ops/s
+MultiTest.testFromPublisher              thrpt   20    4853377.898 ±  78336.973  ops/s
+MultiTest.testFromPublisherWithLoad      thrpt   20         18.021 ±      0.849  ops/s
+MultiTest.testJust                       thrpt   20   11440823.121 ± 293746.970  ops/s
+MultiTest.testJustWithLoad               thrpt   20         73.291 ±      2.560  ops/s
+MultiTest.testMapBadMapper               thrpt   20     686253.196 ±  22229.028  ops/s
+MultiTest.testMapBadMapperNullValue      thrpt   20     700476.658 ±  23080.647  ops/s
+MultiTest.testMapChain                   thrpt   20    2502993.618 ±   4176.932  ops/s
+MultiTest.testMapper                     thrpt   20    5634321.424 ±  22609.687  ops/s
+MultiTest.testMapperWithLoad             thrpt   20         21.908 ±      0.257  ops/s
+MultiTest.testNever                      thrpt   20  249726549.914 ± 480192.812  ops/s
+MultiTest.testNeverMap                   thrpt   20   19682112.779 ±  95637.085  ops/s
+
+
+
+
+
+Result "io.helidon.reactive.jmh.smallrye.MPRSEnginesComparison.testSmallRye":
+  23.204 ±(99.9%) 0.498 ops/s [Average]
+  (min, avg, max) = (21.548, 23.204, 23.823), stdev = 0.574
+  CI (99.9%): [22.705, 23.702] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:01:29
+
+Benchmark                            Mode  Cnt   Score   Error  Units
+MPRSEnginesComparison.testHelidon   thrpt   20   7.799 ± 0.197  ops/s
+MPRSEnginesComparison.testSmallRye  thrpt   20  23.204 ± 0.498  ops/s
+
+
+
+ ====> Dan design opt
+
+Benchmark                            Mode  Cnt   Score   Error  Units
+MPRSEnginesComparison.testHelidon   thrpt   20  12.697 ± 0.254  ops/s
+MPRSEnginesComparison.testSmallRye  thrpt   20  26.404 ± 0.461  ops/s
+
+ ====> Alex design opt
+
+Benchmark                            Mode  Cnt   Score   Error  Units
+MPRSEnginesComparison.testHelidon   thrpt   20  10.126 ± 0.156  ops/s
+MPRSEnginesComparison.testSmallRye  thrpt   20  24.222 ± 0.688  ops/s
+
+
+
+
+
+
+======> Helidon vs. SmallRye
+
+Benchmark                    Mode  Cnt   Score   Error  Units
+HelidonRS.dropWhile         thrpt   20  62.045 ± 0.385  ops/s
+HelidonRS.filter            thrpt   20  66.202 ± 0.435  ops/s
+HelidonRS.flatMap           thrpt   20   0.599 ± 0.008  ops/s
+HelidonRS.flatMapIterable   thrpt   20   2.735 ± 0.068  ops/s
+HelidonRS.limit             thrpt   20  60.378 ± 0.330  ops/s
+HelidonRS.map               thrpt   20  54.084 ± 0.356  ops/s
+HelidonRS.peek              thrpt   20  65.834 ± 0.888  ops/s
+HelidonRS.skip              thrpt   20  61.847 ± 0.511  ops/s
+HelidonRS.takeWhile         thrpt   20  62.212 ± 1.768  ops/s
+HelidonRS.toList            thrpt   20  49.103 ± 1.361  ops/s
+SmallRyeRS.dropWhile        thrpt   20  62.589 ± 0.245  ops/s
+SmallRyeRS.filter           thrpt   20  62.433 ± 0.643  ops/s
+SmallRyeRS.flatMap          thrpt   20   1.228 ± 0.021  ops/s
+SmallRyeRS.flatMapIterable  thrpt   20  34.899 ± 0.814  ops/s
+SmallRyeRS.limit            thrpt   20  64.957 ± 0.130  ops/s
+SmallRyeRS.map              thrpt   20  62.667 ± 0.099  ops/s
+SmallRyeRS.peek             thrpt   20  62.652 ± 0.138  ops/s
+SmallRyeRS.skip             thrpt   20  62.468 ± 0.321  ops/s
+SmallRyeRS.takeWhile        thrpt   20  62.681 ± 0.089  ops/s
+SmallRyeRS.toList           thrpt   20  40.013 ± 0.805  ops/s

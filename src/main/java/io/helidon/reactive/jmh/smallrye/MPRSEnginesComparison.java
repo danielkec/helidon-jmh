@@ -27,7 +27,7 @@ abstract class MPRSEnginesComparison<T> {
         new Runner(opt).run();
     }
 
-    static final List<Integer> TEST_DATA = IntStream.range(0, 1_000_000)
+    static final List<Integer> TEST_DATA = IntStream.range(0, 2_000_000)
             .boxed()
             .collect(Collectors.toList());
 
@@ -70,6 +70,11 @@ abstract class MPRSEnginesComparison<T> {
     @Benchmark
     public void flatMap() {
         run(rs().flatMap(ReactiveStreams::of));
+    }
+
+    @Benchmark
+    public void flatMapLoadOnPassedInPublisher() {
+        run(ReactiveStreams.of(1).flatMap(i -> rs()));
     }
 
     @Benchmark

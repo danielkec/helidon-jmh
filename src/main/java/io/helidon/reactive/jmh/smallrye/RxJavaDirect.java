@@ -1,26 +1,23 @@
 package io.helidon.reactive.jmh.smallrye;
 
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import org.eclipse.microprofile.reactive.streams.operators.PublisherBuilder;
-import org.eclipse.microprofile.reactive.streams.operators.ReactiveStreams;
-import org.eclipse.microprofile.reactive.streams.operators.spi.ReactiveStreamsEngine;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-abstract class MPRSEnginesComparison<T> {
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+public class RxJavaDirect {
 
 
     public static void main(String[] args) throws Exception {
         System.setProperty("helidon.common.reactive.strict.mode", Boolean.TRUE.toString());
         Options opt = new OptionsBuilder()
-                .include(HelidonRS.class.getSimpleName())
-                .include(SmallRyeRS.class.getSimpleName())
+                .include(RxJavaDirect.class.getSimpleName())
                 .forks(1)
                 .warmupIterations(5)
                 .measurementIterations(5)
@@ -35,12 +32,12 @@ abstract class MPRSEnginesComparison<T> {
 
     @Benchmark
     public void map() {
-        run(rs().map(Function.identity()));
+        run(rs().map(v -> v));
     }
 
     @Benchmark
     public void peek() {
-        run(rs().peek(s -> {
+        run(rs().doOnNext(s -> {
         }));
     }
 
@@ -61,22 +58,22 @@ abstract class MPRSEnginesComparison<T> {
 
     @Benchmark
     public void dropWhile() {
-        run(rs().dropWhile(s -> false));
+        run(rs().skipWhile(s -> false));
     }
 
     @Benchmark
     public void limit() {
-        run(rs().limit(Integer.MAX_VALUE));
+        run(rs().take(Integer.MAX_VALUE));
     }
 
     @Benchmark
     public void flatMap() {
-        run(rs().flatMap(ReactiveStreams::of));
+        run(rs().flatMap(Flowable::just));
     }
 
     @Benchmark
     public void flatMapLoadOnPassedInPublisher() {
-        run(ReactiveStreams.of(1).flatMap(i -> rs()));
+        run(Flowable.just(1).flatMap(i -> rs()));
     }
 
     @Benchmark
@@ -86,19 +83,18 @@ abstract class MPRSEnginesComparison<T> {
 
     @Benchmark
     public void toList() {
-        rs().toList().run(engine());
+        run(rs().toList());
     }
 
-    private void run(PublisherBuilder<T> builder) {
-        builder.forEach(s -> {
-        }).run(engine());
+    private void run(Flowable<?> builder) {
+        builder.subscribe();
     }
 
-    abstract ReactiveStreamsEngine engine();
+    private void run(Single<?> builder) {
+        builder.subscribe();
+    }
 
-    abstract List<T> data();
-
-    PublisherBuilder<T> rs() {
-        return ReactiveStreams.fromIterable(data());
+    Flowable<Integer> rs() {
+        return Flowable.fromIterable(TEST_DATA);
     }
 }

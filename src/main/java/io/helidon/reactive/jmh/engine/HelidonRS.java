@@ -1,4 +1,4 @@
-package io.helidon.reactive.jmh.smallrye;
+package io.helidon.reactive.jmh.engine;
 
 import org.eclipse.microprofile.reactive.streams.operators.spi.ReactiveStreamsEngine;
 

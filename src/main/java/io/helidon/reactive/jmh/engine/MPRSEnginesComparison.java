@@ -1,14 +1,18 @@
-package io.helidon.reactive.jmh.smallrye;
+package io.helidon.reactive.jmh.engine;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.helidon.reactive.jmh.Histogram;
+
 import org.eclipse.microprofile.reactive.streams.operators.PublisherBuilder;
 import org.eclipse.microprofile.reactive.streams.operators.ReactiveStreams;
 import org.eclipse.microprofile.reactive.streams.operators.spi.ReactiveStreamsEngine;
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -17,14 +21,22 @@ abstract class MPRSEnginesComparison<T> {
 
 
     public static void main(String[] args) throws Exception {
-        System.setProperty("helidon.common.reactive.strict.mode", Boolean.TRUE.toString());
         Options opt = new OptionsBuilder()
                 .include(HelidonRS.class.getSimpleName())
                 .include(SmallRyeRS.class.getSimpleName())
                 .forks(1)
                 .build();
 
-        new Runner(opt).run();
+        Collection<RunResult> results = new Runner(opt).run();
+        Histogram histogram = Histogram.create();
+        results.forEach(runResult -> {
+            String[] fqdn = runResult.getParams().getBenchmark().split("\\.");
+            var label = String.format("%s.%s", fqdn[fqdn.length - 2], fqdn[fqdn.length - 1]);
+            histogram.add(label, runResult.getAggregatedResult().getPrimaryResult().getScore());
+        });
+
+        System.out.println();
+        System.out.println(histogram.render());
     }
 
     static final List<Integer> TEST_DATA = IntStream.range(0, 2_000_000)

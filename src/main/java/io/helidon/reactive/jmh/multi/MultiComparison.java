@@ -1,29 +1,25 @@
-package io.helidon.reactive.jmh.engine;
+package io.helidon.reactive.jmh.multi;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import io.helidon.common.reactive.Multi;
 import io.helidon.reactive.jmh.Histogram;
 
-import org.eclipse.microprofile.reactive.streams.operators.PublisherBuilder;
-import org.eclipse.microprofile.reactive.streams.operators.ReactiveStreams;
-import org.eclipse.microprofile.reactive.streams.operators.spi.ReactiveStreamsEngine;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-abstract class MPRSEnginesComparison<T> {
-
+public abstract class MultiComparison {
 
     public static void main(String[] args) throws Exception {
         Options opt = new OptionsBuilder()
-                .include(HelidonRS.class.getSimpleName())
-                .include(SmallRyeRS.class.getSimpleName())
+                .include(OldMulti.class.getSimpleName())
+                .include(NewMulti.class.getSimpleName())
                 .forks(1)
                 .build();
 
@@ -43,77 +39,66 @@ abstract class MPRSEnginesComparison<T> {
             .boxed()
             .collect(Collectors.toList());
 
-    @Benchmark
-    public void map() {
-        run(rs().map(Function.identity()));
+    abstract Multi<Integer> multi();
+
+    private void run(Multi<Integer> multi) {
+        multi.collectList();
     }
 
     @Benchmark
-    public void concat() {
-        run(ReactiveStreams.concat(rs(),rs()));
+    public void map() {
+        run(multi().map(i -> i));
     }
 
     @Benchmark
     public void peek() {
-        run(rs().peek(s -> {
+        run(multi().peek(i -> {
         }));
     }
 
     @Benchmark
-    public void filter() {
-        run(rs().filter(s -> true));
+    public void distinct() {
+        run(multi().distinct());
     }
 
     @Benchmark
-    public void skip() {
-        run(rs().skip(5));
+    public void filter() {
+        run(multi().filter(i -> true));
     }
 
     @Benchmark
     public void takeWhile() {
-        run(rs().takeWhile(s -> true));
+        run(multi().takeWhile(i -> true));
     }
 
     @Benchmark
     public void dropWhile() {
-        run(rs().dropWhile(s -> false));
+        run(multi().dropWhile(i -> false));
     }
 
     @Benchmark
     public void limit() {
-        run(rs().limit(Integer.MAX_VALUE));
+        run(multi().limit(Integer.MAX_VALUE));
+    }
+
+    @Benchmark
+    public void skip() {
+        run(multi().skip(5));
     }
 
     @Benchmark
     public void flatMap() {
-        run(rs().flatMap(ReactiveStreams::of));
-    }
-
-    @Benchmark
-    public void flatMapLoadOnPassedInPublisher() {
-        run(ReactiveStreams.of(1).flatMap(i -> rs()));
+        run(multi().flatMap(Multi::just));
     }
 
     @Benchmark
     public void flatMapIterable() {
-        run(rs().flatMapIterable(List::of));
+        run(multi().flatMapIterable(List::of));
     }
 
     @Benchmark
-    public void toList() {
-        rs().toList().run(engine());
-    }
-
-    private void run(PublisherBuilder<T> builder) {
-        builder.forEach(s -> {
-        }).run(engine());
-    }
-
-    abstract ReactiveStreamsEngine engine();
-
-    abstract List<T> data();
-
-    PublisherBuilder<T> rs() {
-        return ReactiveStreams.fromIterable(data());
+    public void forEach() {
+        multi().forEach(integer -> {
+        });
     }
 }

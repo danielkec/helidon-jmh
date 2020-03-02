@@ -2,6 +2,9 @@ package io.helidon.reactive.jmh.multi;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,7 +45,8 @@ public abstract class MultiComparison {
     abstract Multi<Integer> multi();
 
     private void run(Multi<Integer> multi) {
-        multi.collectList();
+        multi.forEach(integer -> {
+        });
     }
 
     @Benchmark
@@ -97,8 +101,7 @@ public abstract class MultiComparison {
     }
 
     @Benchmark
-    public void forEach() {
-        multi().forEach(integer -> {
-        });
+    public void forEach() throws InterruptedException, ExecutionException, TimeoutException {
+        multi().collectList().get(10, TimeUnit.SECONDS);
     }
 }

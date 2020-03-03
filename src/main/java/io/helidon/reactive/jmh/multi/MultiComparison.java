@@ -101,7 +101,7 @@ public abstract class MultiComparison {
     }
 
     @Benchmark
-    public void forEach() throws InterruptedException, ExecutionException, TimeoutException {
+    public void collectList() throws InterruptedException, ExecutionException, TimeoutException {
         multi().collectList().get(10, TimeUnit.SECONDS);
     }
 }

@@ -12,6 +12,7 @@ import org.eclipse.microprofile.reactive.streams.operators.PublisherBuilder;
 import org.eclipse.microprofile.reactive.streams.operators.ReactiveStreams;
 import org.eclipse.microprofile.reactive.streams.operators.spi.ReactiveStreamsEngine;
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
@@ -44,59 +45,59 @@ abstract class MPRSEnginesComparison<T> {
             .collect(Collectors.toList());
 
     @Benchmark
-    public void map() {
-        run(rs().map(Function.identity()));
+    public void map(Blackhole bh) {
+        run(rs().map(Function.identity()), bh);
     }
 
     @Benchmark
-    public void concat() {
-        run(ReactiveStreams.concat(rs(),rs()));
+    public void concat(Blackhole bh) {
+        run(ReactiveStreams.concat(rs(), rs()), bh);
     }
 
     @Benchmark
-    public void peek() {
+    public void peek(Blackhole bh) {
         run(rs().peek(s -> {
-        }));
+        }), bh);
     }
 
     @Benchmark
-    public void filter() {
-        run(rs().filter(s -> true));
+    public void filter(Blackhole bh) {
+        run(rs().filter(s -> true), bh);
     }
 
     @Benchmark
-    public void skip() {
-        run(rs().skip(5));
+    public void skip(Blackhole bh) {
+        run(rs().skip(5), bh);
     }
 
     @Benchmark
-    public void takeWhile() {
-        run(rs().takeWhile(s -> true));
+    public void takeWhile(Blackhole bh) {
+        run(rs().takeWhile(s -> true), bh);
     }
 
     @Benchmark
-    public void dropWhile() {
-        run(rs().dropWhile(s -> false));
+    public void dropWhile(Blackhole bh) {
+        run(rs().dropWhile(s -> false), bh);
     }
 
     @Benchmark
-    public void limit() {
-        run(rs().limit(Integer.MAX_VALUE));
+    public void limit(Blackhole bh) {
+        run(rs().limit(Integer.MAX_VALUE), bh);
     }
 
     @Benchmark
-    public void flatMap() {
-        run(rs().flatMap(ReactiveStreams::of));
+    public void flatMap(Blackhole bh) {
+        run(rs().flatMap(ReactiveStreams::of), bh);
     }
 
     @Benchmark
-    public void flatMapLoadOnPassedInPublisher() {
-        run(ReactiveStreams.of(1).flatMap(i -> rs()));
+    public void flatMapLoadOnPassedInPublisher(Blackhole bh) {
+        run(ReactiveStreams.of(1).flatMap(i -> rs()), bh);
     }
 
     @Benchmark
-    public void flatMapIterable() {
-        run(rs().flatMapIterable(List::of));
+    public void flatMapIterable(Blackhole bh) {
+        run(rs().flatMapIterable(List::of), bh);
     }
 
     @Benchmark
@@ -104,9 +105,8 @@ abstract class MPRSEnginesComparison<T> {
         rs().toList().run(engine());
     }
 
-    private void run(PublisherBuilder<T> builder) {
-        builder.forEach(s -> {
-        }).run(engine());
+    private void run(PublisherBuilder<T> builder, Blackhole bh) {
+        builder.forEach(bh::consume).run(engine());
     }
 
     abstract ReactiveStreamsEngine engine();

@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 
 import io.helidon.common.mapper.Mapper;
 
-public interface MultiOldDesign<T> extends Multi<T> {
+public interface MultiOldDesign<T> extends Subscribable<T> {
     /**
      * Map this {@link Multi} instance to a new {@link Multi} of another type using the given {@link Mapper}.
      *

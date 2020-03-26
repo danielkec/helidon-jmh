@@ -68,52 +68,55 @@ mvn clean install -Pmulti-comparison
 
 Expected result:
 ```shell script
-# Run complete. Total time: 00:15:18
+# Run complete. Total time: 00:17:10
 
-Benchmark                  Mode  Cnt   Score   Error  Units
-NewMulti.collectList      thrpt   20  27.412 ± 0.653  ops/s
-NewMulti.distinct         thrpt   20   6.797 ± 0.704  ops/s
-NewMulti.dropWhile        thrpt   20  37.046 ± 0.216  ops/s
-NewMulti.filter           thrpt   20  48.151 ± 0.345  ops/s
-NewMulti.flatMap          thrpt   20   2.777 ± 0.057  ops/s
-NewMulti.flatMapIterable  thrpt   20   6.968 ± 0.116  ops/s
-NewMulti.limit            thrpt   20  45.405 ± 0.338  ops/s
-NewMulti.map              thrpt   20  48.275 ± 0.515  ops/s
-NewMulti.peek             thrpt   20  47.491 ± 0.296  ops/s
-NewMulti.skip             thrpt   20  49.114 ± 0.279  ops/s
-NewMulti.takeWhile        thrpt   20  45.821 ± 0.777  ops/s
-OldMulti.collectList      thrpt   20  27.879 ± 1.150  ops/s
-OldMulti.distinct         thrpt   20   7.119 ± 0.686  ops/s
-OldMulti.dropWhile        thrpt   20  36.744 ± 0.214  ops/s
-OldMulti.filter           thrpt   20  48.114 ± 0.280  ops/s
-OldMulti.flatMap          thrpt   20   2.732 ± 0.048  ops/s
-OldMulti.flatMapIterable  thrpt   20   7.013 ± 0.115  ops/s
-OldMulti.limit            thrpt   20  45.716 ± 0.276  ops/s
-OldMulti.map              thrpt   20  47.988 ± 0.627  ops/s
-OldMulti.peek             thrpt   20  44.684 ± 5.586  ops/s
-OldMulti.skip             thrpt   20  44.785 ± 1.552  ops/s
-OldMulti.takeWhile        thrpt   20  48.285 ± 0.411  ops/s
+Benchmark                                   Mode  Cnt   Score   Error  Units
+HelidonRS.concat                           thrpt   20  25.753 ± 0.379  ops/s
+HelidonRS.dropWhile                        thrpt   20  51.603 ± 0.890  ops/s
+HelidonRS.filter                           thrpt   20  51.536 ± 0.283  ops/s
+HelidonRS.flatMap                          thrpt   20   1.494 ± 0.015  ops/s
+HelidonRS.flatMapIterable                  thrpt   20   9.253 ± 0.108  ops/s
+HelidonRS.flatMapLoadOnPassedInPublisher   thrpt   20  22.809 ± 0.283  ops/s
+HelidonRS.limit                            thrpt   20  50.658 ± 0.944  ops/s
+HelidonRS.map                              thrpt   20  48.201 ± 0.770  ops/s
+HelidonRS.peek                             thrpt   20  51.032 ± 1.233  ops/s
+HelidonRS.skip                             thrpt   20  50.997 ± 0.907  ops/s
+HelidonRS.takeWhile                        thrpt   20  50.407 ± 0.416  ops/s
+HelidonRS.toList                           thrpt   20  28.722 ± 0.599  ops/s
+SmallRyeRS.concat                          thrpt   20  11.657 ± 0.158  ops/s
+SmallRyeRS.dropWhile                       thrpt   20  26.516 ± 0.328  ops/s
+SmallRyeRS.filter                          thrpt   20  25.027 ± 0.522  ops/s
+SmallRyeRS.flatMap                         thrpt   20   0.585 ± 0.012  ops/s
+SmallRyeRS.flatMapIterable                 thrpt   20   8.727 ± 0.152  ops/s
+SmallRyeRS.flatMapLoadOnPassedInPublisher  thrpt   20  11.750 ± 0.086  ops/s
+SmallRyeRS.limit                           thrpt   20  26.916 ± 0.423  ops/s
+SmallRyeRS.map                             thrpt   20  24.568 ± 0.190  ops/s
+SmallRyeRS.peek                            thrpt   20  25.211 ± 0.099  ops/s
+SmallRyeRS.skip                            thrpt   20  25.329 ± 0.415  ops/s
+SmallRyeRS.takeWhile                       thrpt   20  26.594 ± 0.215  ops/s
+SmallRyeRS.toList                          thrpt   20  16.986 ± 0.295  ops/s
 
-OldMulti.flatMapIterable ██████████████ 7.013
-NewMulti.flatMapIterable ██████████████ 6.968
-      OldMulti.takeWhile ██████████████████████████████████████████████████████████████████████████████████████████████████ 48.285
-      NewMulti.takeWhile █████████████████████████████████████████████████████████████████████████████████████████████ 45.821
-      OldMulti.dropWhile ███████████████████████████████████████████████████████████████████████████ 36.744
-      NewMulti.dropWhile ███████████████████████████████████████████████████████████████████████████ 37.046
-           OldMulti.peek ███████████████████████████████████████████████████████████████████████████████████████████ 44.684
-           NewMulti.peek █████████████████████████████████████████████████████████████████████████████████████████████████ 47.491
-        OldMulti.flatMap ██████ 2.732
-        NewMulti.flatMap ██████ 2.777
-            OldMulti.map ██████████████████████████████████████████████████████████████████████████████████████████████████ 47.988
-            NewMulti.map ██████████████████████████████████████████████████████████████████████████████████████████████████ 48.275
-           OldMulti.skip ███████████████████████████████████████████████████████████████████████████████████████████ 44.785
-           NewMulti.skip ████████████████████████████████████████████████████████████████████████████████████████████████████ 49.114
-         OldMulti.filter ██████████████████████████████████████████████████████████████████████████████████████████████████ 48.114
-         NewMulti.filter ██████████████████████████████████████████████████████████████████████████████████████████████████ 48.151
-       OldMulti.distinct ██████████████ 7.119
-       NewMulti.distinct ██████████████ 6.797
-          OldMulti.limit █████████████████████████████████████████████████████████████████████████████████████████████ 45.716
-          NewMulti.limit ████████████████████████████████████████████████████████████████████████████████████████████ 45.405
-    OldMulti.collectList █████████████████████████████████████████████████████████ 27.879
-    NewMulti.collectList ████████████████████████████████████████████████████████ 27.412
-```
+               SmallRyeRS.flatMapIterable █████████████████ 8.727
+                HelidonRS.flatMapIterable ██████████████████ 9.253
+                     SmallRyeRS.takeWhile ████████████████████████████████████████████████████ 26.594
+                      HelidonRS.takeWhile ██████████████████████████████████████████████████████████████████████████████████████████████████ 50.407
+                     SmallRyeRS.dropWhile ███████████████████████████████████████████████████ 26.516
+                      HelidonRS.dropWhile ████████████████████████████████████████████████████████████████████████████████████████████████████ 51.603
+                          SmallRyeRS.peek █████████████████████████████████████████████████ 25.211
+                           HelidonRS.peek ███████████████████████████████████████████████████████████████████████████████████████████████████ 51.032
+                       SmallRyeRS.flatMap █ 0.585
+                        HelidonRS.flatMap ███ 1.494
+                           SmallRyeRS.map ████████████████████████████████████████████████ 24.568
+                            HelidonRS.map █████████████████████████████████████████████████████████████████████████████████████████████ 48.201
+                          SmallRyeRS.skip █████████████████████████████████████████████████ 25.329
+                           HelidonRS.skip ███████████████████████████████████████████████████████████████████████████████████████████████████ 50.997
+SmallRyeRS.flatMapLoadOnPassedInPublisher ███████████████████████ 11.750
+ HelidonRS.flatMapLoadOnPassedInPublisher ████████████████████████████████████████████ 22.809
+                        SmallRyeRS.filter ████████████████████████████████████████████████ 25.027
+                         HelidonRS.filter ████████████████████████████████████████████████████████████████████████████████████████████████████ 51.536
+                        SmallRyeRS.concat ███████████████████████ 11.657
+                         HelidonRS.concat ██████████████████████████████████████████████████ 25.753
+                         SmallRyeRS.limit ████████████████████████████████████████████████████ 26.916
+                          HelidonRS.limit ██████████████████████████████████████████████████████████████████████████████████████████████████ 50.658
+                        SmallRyeRS.toList █████████████████████████████████ 16.986
+                         HelidonRS.toList ███████████████████████████████

@@ -97,7 +97,7 @@ abstract class MPRSEnginesComparison<T> {
 
     @Benchmark
     public void flatMapIterable(Blackhole bh) {
-        run(rs().flatMapIterable(List::of), bh);
+        run(rs().flatMapIterable(e1 -> List.of(e1, e1)), bh);
     }
 
     @Benchmark
@@ -113,7 +113,5 @@ abstract class MPRSEnginesComparison<T> {
 
     abstract List<T> data();
 
-    PublisherBuilder<T> rs() {
-        return ReactiveStreams.fromIterable(data());
-    }
+    abstract PublisherBuilder<T> rs();
 }

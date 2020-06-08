@@ -4,13 +4,13 @@ import org.eclipse.microprofile.reactive.streams.operators.spi.ReactiveStreamsEn
 
 import java.util.List;
 
-import io.helidon.microprofile.reactive.HelidonReactiveStreamEngine;
+import io.helidon.microprofile.reactive.HelidonReactiveStreamsEngine;
 
 public class HelidonRS extends MPRSEnginesComparison<Integer>{
 
     @Override
     ReactiveStreamsEngine engine() {
-        return new HelidonReactiveStreamEngine();
+        return new HelidonReactiveStreamsEngine();
     }
 
     @Override

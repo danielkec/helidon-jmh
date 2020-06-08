@@ -22,7 +22,7 @@ public abstract class MultiComparison {
 
     public static void main(String[] args) throws Exception {
         Options opt = new OptionsBuilder()
-                .include(OldMulti.class.getSimpleName())
+//                .include(OldMulti.class.getSimpleName())
                 .include(NewMulti.class.getSimpleName())
                 .forks(1)
                 .build();

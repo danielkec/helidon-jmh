@@ -24,7 +24,9 @@ abstract class MPRSEnginesComparison<T> {
     public static void main(String[] args) throws Exception {
         Options opt = new OptionsBuilder()
                 .include(HelidonRS.class.getSimpleName())
+                .include(MutinyRS.class.getSimpleName())
                 .include(SmallRyeRS.class.getSimpleName())
+                .warmupIterations(3)
                 .forks(1)
                 .build();
 

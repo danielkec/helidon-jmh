@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  2020 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ final class MultiConcatArrayNew<T> implements Multi<T> {
 
     private final Flow.Publisher<T>[] sources;
 
-    MultiConcatArrayNew(Flow.Publisher<T>[] sources) {
+    public MultiConcatArrayNew(Flow.Publisher<T>[] sources) {
         this.sources = sources;
     }
 
@@ -41,8 +41,8 @@ final class MultiConcatArrayNew<T> implements Multi<T> {
         parent.nextSource(parent.produced);
     }
 
-    private static final class ConcatArraySubscriber<T>
-    implements Flow.Subscriber<T>, Flow.Subscription {
+    protected static final class ConcatArraySubscriber<T>
+            implements Flow.Subscriber<T>, Flow.Subscription {
 
         private final Flow.Subscriber<? super T> downstream;
 
@@ -59,25 +59,25 @@ final class MultiConcatArrayNew<T> implements Multi<T> {
         private volatile Thread lastThreadCompleting;
         private boolean redo;
 
-        static final long BAD       = Long.MIN_VALUE;
-        static final long CANCEL    = Long.MIN_VALUE + 1;
+        static final long BAD = Long.MIN_VALUE;
+        static final long CANCEL = Long.MIN_VALUE + 1;
         static final long SEE_OTHER = Long.MIN_VALUE + 2;
-        static final long INIT      = Long.MIN_VALUE + 3;
+        static final long INIT = Long.MIN_VALUE + 3;
 
-        private static final VarHandle REQUESTED;
-        private static final VarHandle PENDING;
-        private static final VarHandle LAST_THREAD_COMPLETING;
+        static final VarHandle REQUESTED;
+        static final VarHandle PENDING;
+        static final VarHandle LASTTHREADCOMPLETING;
 
         static {
-           try {
-              MethodHandles.Lookup lookup = MethodHandles.lookup();
-              REQUESTED = lookup.findVarHandle(ConcatArraySubscriber.class, "requested", long.class);
-              PENDING = lookup.findVarHandle(ConcatArraySubscriber.class, "pending", long.class);
-              LAST_THREAD_COMPLETING = lookup
+            try {
+                MethodHandles.Lookup lookup = MethodHandles.lookup();
+                REQUESTED = lookup.findVarHandle(ConcatArraySubscriber.class, "requested", long.class);
+                PENDING = lookup.findVarHandle(ConcatArraySubscriber.class, "pending", long.class);
+                LASTTHREADCOMPLETING = lookup
                         .findVarHandle(ConcatArraySubscriber.class, "lastThreadCompleting", Thread.class);
-           } catch (Exception e) {
-              throw new Error("Expected lookup to succeed", e);
-           }
+            } catch (Exception e) {
+                throw new Error("Expected lookup to succeed", e);
+            }
         }
 
         ConcatArraySubscriber(Flow.Subscriber<? super T> downstream, Flow.Publisher<T>[] sources) {
@@ -87,26 +87,26 @@ final class MultiConcatArrayNew<T> implements Multi<T> {
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
-            long p0 = (Long) PENDING.get(this);
+            long p0 = pending;
             if (p0 == CANCEL) {
-               subscription.cancel();
-               return;
+                subscription.cancel();
+                return;
             }
 
             produced++; // assert: matching request(1) has been done by nextSource()
             this.subscription = subscription;
             // assert: requested == SEE_OTHER
             REQUESTED.setOpaque(this, p0); // assert: p0 is guaranteed to be a value of requested never seen before
-                                   //    or is a terminal value (when concurrent good requests do not matter)
-            long p = (Long) PENDING.getAndSet(this, SEE_OTHER);
+            //    or is a terminal value (when concurrent good requests do not matter)
+            long p = (long) PENDING.getAndSet(this, SEE_OTHER);
 
             if (p == CANCEL) {
-               cancel();
-               return;
+                cancel();
+                return;
             }
 
             if (p == produced) {
-               return;
+                return;
             }
 
             // assert: p > produced, unless p == BAD - there were request() between nextSource()
@@ -138,30 +138,30 @@ final class MultiConcatArrayNew<T> implements Multi<T> {
         @Override
         public void onComplete() {
             Thread current = Thread.currentThread();
-            if (LAST_THREAD_COMPLETING.getOpaque(this) == current) {
+            if (LASTTHREADCOMPLETING.getOpaque(this) == current) {
                 redo = true;
                 return;
             }
 
-            LAST_THREAD_COMPLETING.setOpaque(this, current);
+            LASTTHREADCOMPLETING.setOpaque(this, current);
             VarHandle.storeStoreFence();
             boolean sameThread;
             boolean again;
             do {
-               redo = false;
-               // assert: pending == SEE_OTHER
-               PENDING.setOpaque(this, produced);
-               long r = (Long) REQUESTED.getAndSet(this, SEE_OTHER);
-               subscription = null;
+                redo = false;
+                // assert: pending == SEE_OTHER
+                PENDING.setOpaque(this, produced);
+                long r = (long) REQUESTED.getAndSet(this, SEE_OTHER);
+                subscription = null;
 
-               nextSource(r);
-               again = redo;
-               VarHandle.loadLoadFence();
-               sameThread = LAST_THREAD_COMPLETING.getOpaque(this) == current;
+                nextSource(r);
+                again = redo;
+                VarHandle.loadLoadFence();
+                sameThread = LASTTHREADCOMPLETING.getOpaque(this) == current;
             } while (again && sameThread);
 
             if (sameThread) {
-               LAST_THREAD_COMPLETING.compareAndSet(this, current, null);
+                LASTTHREADCOMPLETING.compareAndSet(this, current, null);
             }
         }
 
@@ -181,8 +181,8 @@ final class MultiConcatArrayNew<T> implements Multi<T> {
             // assert: r >= produced, unless r == BAD - because produced
             //    gets incremented only in response to a preceding request
             r = unconsumed(r, produced - 1); // assert: same as unconsumed(r+1, produced) for
-                // r representing a request count (not a terminal state); one request for the future onSubscribe;
-                // for other values of r the value of produced is ignored;
+            // r representing a request count (not a terminal state); one request for the future onSubscribe;
+            // for other values of r the value of produced is ignored;
 
             // assert: this will update pending
             updateRequest(r);
@@ -200,13 +200,13 @@ final class MultiConcatArrayNew<T> implements Multi<T> {
             //   MAX_VALUE, BAD, CANCEL
 
             if (req >= INIT && req < Long.MAX_VALUE) {
-               if (produced < 0 && Long.MAX_VALUE + produced < req) {
-                  req = Long.MAX_VALUE;
-               } else {
-                  req -= produced;
-               }
+                if (produced < 0 && Long.MAX_VALUE + produced < req) {
+                    req = Long.MAX_VALUE;
+                } else {
+                    req -= produced;
+                }
 
-               // assert: req > 0
+                // assert: req > 0
             }
 
             return req;
@@ -220,32 +220,47 @@ final class MultiConcatArrayNew<T> implements Multi<T> {
             }
         }
 
+        private boolean updatePending(long n) {
+            long req;
+            long nextReq;
+            do {
+                req = pending;
+                if (req == CANCEL) {
+                    return true;
+                }
+
+                if (req == SEE_OTHER) {
+                    return false;
+                }
+                nextReq = n < INIT ? n
+                        // assert: n >= 0
+                        : Long.MAX_VALUE - n <= req ? Long.MAX_VALUE
+                        : req + n;
+            } while (!PENDING.compareAndSet(this, req, nextReq));
+
+            return true;
+        }
+
         private Flow.Subscription updateRequest(long n) {
             Flow.Subscription sub;
             long req;
             long nextReq;
-            VarHandle rr = REQUESTED;
             do {
-               req = (Long) rr.get(this);
-               while (req == SEE_OTHER) {
-                  if (rr == REQUESTED) {
-                     rr = PENDING;
-                  } else {
-                     rr = REQUESTED;
-                  }
-                  req = (Long) rr.get(this);
-               }
+                req = requested;
+                while (req < INIT) {
+                    if (req != SEE_OTHER || updatePending(n)) {
+                        return null;
+                    }
+                    req = requested;
+                }
 
-               sub = subscription;
-               nextReq = n < INIT ? n
-                       // assert: n >= 0
-                       : Long.MAX_VALUE - n <= req ? Long.MAX_VALUE
-                                 : req + n;
-            } while (req != CANCEL && !rr.compareAndSet(this, req, nextReq));
+                sub = subscription;
+                nextReq = n < INIT ? n
+                        // assert: n >= 0
+                        : Long.MAX_VALUE - n <= req ? Long.MAX_VALUE
+                        : req + n;
 
-            if (req == CANCEL || rr != REQUESTED) {
-               return null;
-            }
+            } while (!REQUESTED.compareAndSet(this, req, nextReq));
 
             if (nextReq < INIT) {
                 // assert: good requests should be delivered once and only once to ensure

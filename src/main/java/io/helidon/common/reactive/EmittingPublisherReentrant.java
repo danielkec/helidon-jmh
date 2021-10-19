@@ -31,11 +31,11 @@ import io.helidon.common.LazyValue;
 
 /**
  * Emitting publisher for manual publishing on the same thread.
- * {@link EmittingPublisherReentrant} doesn't have any buffering capability and propagates backpressure
- * directly by returning {@code false} from {@link EmittingPublisherReentrant#emit(Object)} in case there
+ * {@link EmittingPublisher} doesn't have any buffering capability and propagates backpressure
+ * directly by returning {@code false} from {@link EmittingPublisher#emit(Object)} in case there
  * is no demand, or {@code cancel} signal has been received.
  * <p>
- * For publishing with buffering in case of backpressure use {@link BufferedEmittingPublisherReentrant}.
+ * For publishing with buffering in case of backpressure use {@link BufferedEmittingPublisher}.
  * </p>
  *
  * <p>
@@ -49,7 +49,6 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
     private volatile Throwable error = null;
     private final AtomicReference<State> state = new AtomicReference<>(State.INIT);
     private final AtomicLong requested = new AtomicLong();
-    private final ReentrantLock emitLock = new ReentrantLock();
     private final AtomicBoolean subscribed = new AtomicBoolean(false);
     private final LazyValue<Boolean> unbounded = LazyValue.create(() -> this.requested.get() == Long.MAX_VALUE);
     private final CompletableFuture<Void> deferredComplete = new CompletableFuture<>();
@@ -58,6 +57,8 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
     };
     private Runnable cancelCallback = () -> {
     };
+
+    private ReentrantLock serialLock = new ReentrantLock();
 
     EmittingPublisherReentrant() {
     }
@@ -81,7 +82,15 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
             subscriber.onError(new IllegalStateException("Only single subscriber is allowed!"));
             return;
         }
+        unsafeSubscribe(subscriber);
+    }
 
+    /**
+     * Subscribe without subscriber validation.
+     *
+     * @param subscriber the subscriber
+     */
+    void unsafeSubscribe(final Flow.Subscriber<? super T> subscriber) {
         this.subscriber = subscriber;
 
         subscriber.onSubscribe(new Flow.Subscription() {
@@ -96,8 +105,8 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
                 }
                 requested.updateAndGet(r -> Long.MAX_VALUE - r > n ? n + r : Long.MAX_VALUE);
                 state.compareAndSet(State.INIT, State.REQUESTED);
-                if (state.compareAndSet(State.SUBSCRIBED, State.READY_TO_EMIT)
-                        || State.READY_TO_EMIT == state.get()) {
+                if (state.updateAndGet(s -> s == State.SUBSCRIBED ? State.READY_TO_EMIT : s)
+                        == State.READY_TO_EMIT) {
                     if (requestCallback != null) {
                         requestCallback.accept(n, requested.get());
                     }
@@ -106,10 +115,8 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
 
             @Override
             public void cancel() {
-                if (state.compareAndSet(State.INIT, State.CANCELLED)
-                        || state.compareAndSet(State.SUBSCRIBED, State.CANCELLED)
-                        || state.compareAndSet(State.REQUESTED, State.CANCELLED)
-                        || state.compareAndSet(State.READY_TO_EMIT, State.CANCELLED)) {
+                if (state.getAndUpdate(s -> s != State.COMPLETED && s != State.FAILED ? State.CANCELLED : s)
+                        != State.CANCELLED) {
                     cancelCallback.run();
                     EmittingPublisherReentrant.this.subscriber = null;
                 }
@@ -151,31 +158,33 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
     }
 
     private void signalOnError(Throwable throwable) {
-        emitLock.lock();
         try {
-            Flow.Subscriber<? super T> subscriber = this.subscriber;
-            if (subscriber == null) {
-                // cancel released the reference already
-                return;
+            serialLock.lock();
+            try {
+                Flow.Subscriber<? super T> subscriber = this.subscriber;
+                if (subscriber == null) {
+                    // cancel released the reference already
+                    return;
+                }
+                if (state.compareAndSet(State.INIT, State.FAILED)
+                        || state.compareAndSet(State.SUBSCRIBED, State.FAILED)
+                        || state.compareAndSet(State.REQUESTED, State.FAILED)
+                        || state.compareAndSet(State.READY_TO_EMIT, State.FAILED)) {
+                    this.error = throwable;
+                    EmittingPublisherReentrant.this.subscriber = null;
+                    subscriber.onError(throwable);
+                }
+            } catch (Throwable t) {
+                throw new IllegalStateException("On error threw an exception!", t);
             }
-            if (state.compareAndSet(State.INIT, State.FAILED)
-                    || state.compareAndSet(State.SUBSCRIBED, State.FAILED)
-                    || state.compareAndSet(State.REQUESTED, State.FAILED)
-                    || state.compareAndSet(State.READY_TO_EMIT, State.FAILED)) {
-                this.error = throwable;
-                EmittingPublisherReentrant.this.subscriber = null;
-                subscriber.onError(throwable);
-            }
-        } catch (Throwable t) {
-            throw new IllegalStateException("On error threw an exception!", t);
         } finally {
-            emitLock.unlock();
+            serialLock.unlock();
         }
     }
 
     private void signalOnComplete() {
-        emitLock.lock();
         try {
+            serialLock.lock();
             Flow.Subscriber<? super T> subscriber = this.subscriber;
             if (subscriber == null) {
                 // cancel released the reference already
@@ -189,7 +198,7 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
                 subscriber.onComplete();
             }
         } finally {
-            emitLock.unlock();
+            serialLock.unlock();
         }
     }
 
@@ -299,30 +308,32 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
 
     private boolean internalEmit(T item) {
         Throwable error;
-        emitLock.lock();
         try {
-            //State could have changed before acquiring the lock
-            if (State.READY_TO_EMIT != state.get()) {
-                return false;
+            serialLock.lock();
+            try {
+                //State could have changed before acquiring the lock
+                if (State.READY_TO_EMIT != state.get()) {
+                    return false;
+                }
+                Flow.Subscriber<? super T> subscriber = this.subscriber;
+                if (subscriber == null) {
+                    // cancel released the reference
+                    return false;
+                }
+                if (requested.getAndUpdate(r -> r > 0 ? r != Long.MAX_VALUE ? r - 1 : Long.MAX_VALUE : 0) < 1) {
+                    // there is a chance racing request will increment counter between this check and onNext
+                    // lets delegate that to emit caller
+                    return false;
+                }
+                subscriber.onNext(item);
+                return true;
+            } catch (NullPointerException npe) {
+                throw npe;
+            } catch (Throwable t) {
+                error = t;
             }
-            Flow.Subscriber<? super T> subscriber = this.subscriber;
-            if (subscriber == null) {
-                // cancel released the reference
-                return false;
-            }
-            if (requested.getAndUpdate(r -> r > 0 ? r != Long.MAX_VALUE ? r - 1 : Long.MAX_VALUE : 0) < 1) {
-                // there is a chance racing request will increment counter between this check and onNext
-                // lets delegate that to emit caller
-                return false;
-            }
-            subscriber.onNext(item);
-            return true;
-        } catch (NullPointerException npe) {
-            throw npe;
-        } catch (Throwable t) {
-            error = t;
         } finally {
-            emitLock.unlock();
+            serialLock.unlock();
         }
         fail(new IllegalStateException(error));
         return false;
@@ -409,6 +420,7 @@ public class EmittingPublisherReentrant<T> implements Flow.Publisher<T> {
         };
 
         abstract <T> boolean emit(EmittingPublisherReentrant<T> publisher, T item);
+
         abstract boolean isTerminated();
 
     }

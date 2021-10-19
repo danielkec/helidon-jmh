@@ -5,11 +5,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import io.helidon.common.reactive.BufferedEmittingPublisherReentrant;
-import io.helidon.common.reactive.BufferedEmittingPublisherSynchronized;
-import io.helidon.common.reactive.BufferedEmittingPublisherTTAS;
+import io.helidon.common.reactive.EmittingPublisherReentrant;
+import io.helidon.common.reactive.EmittingPublisherSynchronized;
 import io.helidon.common.reactive.Multi;
-import io.helidon.common.reactive.OriginThreadPublisher;
 import io.helidon.common.reactive.TestSubscriber;
 
 import org.openjdk.jmh.annotations.Benchmark;
@@ -33,49 +31,20 @@ public class EPConcurrentTest {
         new Runner(opt).run();
     }
 
-    BufferedEmittingPublisherTTAS<String> ttas;
-    BufferedEmittingPublisherSynchronized<String> sync;
-    BufferedEmittingPublisherReentrant<String> reentrant;
-    OriginThreadPublisher<String, String> otp;
+    EmittingPublisherSynchronized<String> sync;
+    EmittingPublisherReentrant<String> reentrant;
     Stream<String> parallelDataStream;
 
     @Setup(Level.Invocation)
     public void setUp() {
-        ttas = BufferedEmittingPublisherTTAS.create();
-        sync = BufferedEmittingPublisherSynchronized.create();
-        reentrant = BufferedEmittingPublisherReentrant.create();
-        otp = new OriginThreadPublisher<>() {};
+        sync = EmittingPublisherSynchronized.create();
+        reentrant = EmittingPublisherReentrant.create();
         parallelDataStream = TEST_DATA.parallelStream();
     }
 
     static final List<String> TEST_DATA = IntStream.range(0, 1_000_000)
             .mapToObj(i -> String.format("%d%d%d%d%d", i, i, i, i, i))
             .collect(Collectors.toList());
-
-    @Benchmark
-    public void testEmitterTTASUnbounded(Blackhole bh) {
-        Multi.create(ttas).forEach(bh::consume);
-        parallelDataStream.forEach(ttas::emit);
-    }
-
-    @Benchmark
-    public void testEmitterTTASReqMillion(Blackhole bh) {
-        TestSubscriber<String> subscriber = new TestSubscriber<>(bh);
-        Multi.create(ttas).subscribe(subscriber);
-        subscriber.request(1_000_000);
-        parallelDataStream.forEach(ttas::emit);
-    }
-
-    @Benchmark
-    public void testEmitterTTASReqOneByOne(Blackhole bh) {
-        TestSubscriber<String> subscriber = new TestSubscriber<>(bh);
-        Multi.create(ttas).subscribe(subscriber);
-        parallelDataStream.forEach(s -> {
-            subscriber.request(1);
-            ttas.emit(s);
-        });
-    }
-
 
     @Benchmark
     public void testEmitterSyncUnbounded(Blackhole bh) {
@@ -101,7 +70,6 @@ public class EPConcurrentTest {
         });
     }
 
-
     @Benchmark
     public void testEmitterReentrantUnbounded(Blackhole bh) {
         Multi.create(reentrant).forEach(bh::consume);
@@ -123,31 +91,6 @@ public class EPConcurrentTest {
         parallelDataStream.forEach(s -> {
             subscriber.request(1);
             reentrant.emit(s);
-        });
-    }
-
-
-    @Benchmark
-    public void testOTPUnbounded(Blackhole bh) {
-        Multi.create(otp).forEach(bh::consume);
-        parallelDataStream.forEach(otp::submit);
-    }
-
-    @Benchmark
-    public void testOTPReqMillion(Blackhole bh) {
-        TestSubscriber<String> subscriber = new TestSubscriber<>(bh);
-        Multi.create(otp).subscribe(subscriber);
-        subscriber.request(1_000_000);
-        parallelDataStream.forEach(otp::submit);
-    }
-
-    @Benchmark
-    public void testOTPReqOneByOne(Blackhole bh) {
-        TestSubscriber<String> subscriber = new TestSubscriber<>(bh);
-        Multi.create(otp).subscribe(subscriber);
-        parallelDataStream.forEach(s -> {
-            subscriber.request(1);
-            otp.submit(s);
         });
     }
 }

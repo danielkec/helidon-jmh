@@ -16,7 +16,6 @@
  */
 
 package io.helidon.common.reactive;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -30,11 +29,11 @@ import io.helidon.common.LazyValue;
 
 /**
  * Emitting publisher for manual publishing on the same thread.
- * {@link EmittingPublisherSynchronized} doesn't have any buffering capability and propagates backpressure
- * directly by returning {@code false} from {@link EmittingPublisherSynchronized#emit(Object)} in case there
+ * {@link EmittingPublisher} doesn't have any buffering capability and propagates backpressure
+ * directly by returning {@code false} from {@link EmittingPublisher#emit(Object)} in case there
  * is no demand, or {@code cancel} signal has been received.
  * <p>
- * For publishing with buffering in case of backpressure use {@link BufferedEmittingPublisherSynchronized}.
+ * For publishing with buffering in case of backpressure use {@link BufferedEmittingPublisher}.
  * </p>
  *
  * <p>
@@ -79,7 +78,15 @@ public class EmittingPublisherSynchronized<T> implements Flow.Publisher<T> {
             subscriber.onError(new IllegalStateException("Only single subscriber is allowed!"));
             return;
         }
+        unsafeSubscribe(subscriber);
+    }
 
+    /**
+     * Subscribe without subscriber validation.
+     *
+     * @param subscriber the subscriber
+     */
+    void unsafeSubscribe(final Flow.Subscriber<? super T> subscriber) {
         this.subscriber = subscriber;
 
         subscriber.onSubscribe(new Flow.Subscription() {
@@ -94,8 +101,8 @@ public class EmittingPublisherSynchronized<T> implements Flow.Publisher<T> {
                 }
                 requested.updateAndGet(r -> Long.MAX_VALUE - r > n ? n + r : Long.MAX_VALUE);
                 state.compareAndSet(State.INIT, State.REQUESTED);
-                if (state.compareAndSet(State.SUBSCRIBED, State.READY_TO_EMIT)
-                        || State.READY_TO_EMIT == state.get()) {
+                if (state.updateAndGet(s -> s == State.SUBSCRIBED ? State.READY_TO_EMIT : s)
+                        == State.READY_TO_EMIT) {
                     if (requestCallback != null) {
                         requestCallback.accept(n, requested.get());
                     }
@@ -104,10 +111,8 @@ public class EmittingPublisherSynchronized<T> implements Flow.Publisher<T> {
 
             @Override
             public void cancel() {
-                if (state.compareAndSet(State.INIT, State.CANCELLED)
-                        || state.compareAndSet(State.SUBSCRIBED, State.CANCELLED)
-                        || state.compareAndSet(State.REQUESTED, State.CANCELLED)
-                        || state.compareAndSet(State.READY_TO_EMIT, State.CANCELLED)) {
+                if (state.getAndUpdate(s -> s != State.COMPLETED && s != State.FAILED ? State.CANCELLED : s)
+                        != State.CANCELLED) {
                     cancelCallback.run();
                     EmittingPublisherSynchronized.this.subscriber = null;
                 }
@@ -148,27 +153,30 @@ public class EmittingPublisherSynchronized<T> implements Flow.Publisher<T> {
         deferredComplete.thenRun(this::signalOnComplete);
     }
 
-    private synchronized void signalOnError(Throwable throwable) {
-        try {
-            Flow.Subscriber<? super T> subscriber = this.subscriber;
-            if (subscriber == null) {
-                // cancel released the reference already
-                return;
+    private void signalOnError(Throwable throwable) {
+        synchronized (this) {
+            try {
+                Flow.Subscriber<? super T> subscriber = this.subscriber;
+                if (subscriber == null) {
+                    // cancel released the reference already
+                    return;
+                }
+                if (state.compareAndSet(State.INIT, State.FAILED)
+                        || state.compareAndSet(State.SUBSCRIBED, State.FAILED)
+                        || state.compareAndSet(State.REQUESTED, State.FAILED)
+                        || state.compareAndSet(State.READY_TO_EMIT, State.FAILED)) {
+                    this.error = throwable;
+                    EmittingPublisherSynchronized.this.subscriber = null;
+                    subscriber.onError(throwable);
+                }
+            } catch (Throwable t) {
+                throw new IllegalStateException("On error threw an exception!", t);
             }
-            if (state.compareAndSet(State.INIT, State.FAILED)
-                    || state.compareAndSet(State.SUBSCRIBED, State.FAILED)
-                    || state.compareAndSet(State.REQUESTED, State.FAILED)
-                    || state.compareAndSet(State.READY_TO_EMIT, State.FAILED)) {
-                this.error = throwable;
-                EmittingPublisherSynchronized.this.subscriber = null;
-                subscriber.onError(throwable);
-            }
-        } catch (Throwable t) {
-            throw new IllegalStateException("On error threw an exception!", t);
         }
     }
 
-    private synchronized void signalOnComplete() {
+    private void signalOnComplete() {
+        synchronized (this) {
             Flow.Subscriber<? super T> subscriber = this.subscriber;
             if (subscriber == null) {
                 // cancel released the reference already
@@ -181,6 +189,7 @@ public class EmittingPublisherSynchronized<T> implements Flow.Publisher<T> {
                 EmittingPublisherSynchronized.this.subscriber = null;
                 subscriber.onComplete();
             }
+        }
     }
 
     /**
@@ -398,6 +407,7 @@ public class EmittingPublisherSynchronized<T> implements Flow.Publisher<T> {
         };
 
         abstract <T> boolean emit(EmittingPublisherSynchronized<T> publisher, T item);
+
         abstract boolean isTerminated();
 
     }
